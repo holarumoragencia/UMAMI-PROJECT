@@ -21,6 +21,7 @@ import {
 	Texto,
 	Vidrio,
 } from './componentes';
+import {Dashboard} from './dashboard';
 import {LOGO_PROJECTS, LOGO_UMAMI} from './logo-trazos';
 
 const {naranja, gris, blanco, oliva, arena} = COLORES;
@@ -90,14 +91,16 @@ const Estructura: React.FC = () => (
 );
 
 // 6 — Las cinco palancas: clip a pantalla completa, marco de línea y tarjeta de vidrio
-const PALANCAS: {texto: string; clip: string}[] = [
-	{texto: 'Modelo de *viabilidad', clip: 'cerveza'},
-	{texto: 'Operación *sistematizada', clip: 'chef-oscuro'},
-	{texto: 'Ingeniería de *carta', clip: 'mesa-emplatada'},
-	{texto: 'Cultura de *equipo', clip: 'bar-revolviendo'},
-	{texto: 'Digitalización de *procesos', clip: 'barista'},
+// La última (digitalización) dura más para que se vea el dashboard animado.
+const PALANCAS: {texto: string; fondo: string | React.FC; d: number}[] = [
+	{texto: 'Modelo de *viabilidad', fondo: 'cerveza', d: 30},
+	{texto: 'Operación *sistematizada', fondo: 'chef-oscuro', d: 30},
+	{texto: 'Ingeniería de *carta', fondo: 'mesa-emplatada', d: 30},
+	{texto: 'Cultura de *equipo', fondo: 'bar-revolviendo', d: 30},
+	{texto: 'Digitalización de *procesos', fondo: Dashboard, d: 45},
 ];
-const DURACION_PALANCA = 33;
+const INICIO_PALANCA = PALANCAS.map((_, i) => PALANCAS.slice(0, i).reduce((t, p) => t + p.d, 0));
+const DURACION_PALANCAS = PALANCAS.reduce((t, p) => t + p.d, 0);
 
 const Palancas: React.FC = () => {
 	const frame = useCurrentFrame();
@@ -105,9 +108,13 @@ const Palancas: React.FC = () => {
 	const entrada = spring({frame: frame - 4, fps, config: {damping: 20, stiffness: 140}});
 	return (
 		<AbsoluteFill style={{backgroundColor: gris}}>
-			{PALANCAS.map((p, i) => (
-				<Sequence key={p.clip} from={i * DURACION_PALANCA} durationInFrames={DURACION_PALANCA}>
-					<Clip src={p.clip} duracion={DURACION_PALANCA} oscurecer={0.2} zoom={[1.06, 1.12]} />
+			{PALANCAS.map(({texto, fondo: Fondo, d}, i) => (
+				<Sequence key={texto} from={INICIO_PALANCA[i]} durationInFrames={d}>
+					{typeof Fondo === 'string' ? (
+						<Clip src={Fondo} duracion={d} oscurecer={0.2} zoom={[1.06, 1.12]} />
+					) : (
+						<Fondo />
+					)}
 				</Sequence>
 			))}
 			<MarcoLinea duracion={36} />
@@ -122,15 +129,10 @@ const Palancas: React.FC = () => {
 				}}
 			>
 				<Pildora texto="Estructura del negocio" style={{marginBottom: -36, marginLeft: 48, position: 'relative', zIndex: 2}} />
-				<Vidrio style={{minHeight: 370, paddingTop: 80}}>
+				<Vidrio style={{minHeight: 320, paddingTop: 80}}>
 					{PALANCAS.map((p, i) => (
-						<Sequence
-							key={p.texto}
-							from={i * DURACION_PALANCA}
-							durationInFrames={DURACION_PALANCA}
-							layout="none"
-						>
-							<Texto texto={p.texto} tamano={140} cadencia={3} retraso={i === 0 ? 8 : 0} ancho={800} />
+						<Sequence key={p.texto} from={INICIO_PALANCA[i]} durationInFrames={p.d} layout="none">
+							<Texto texto={p.texto} tamano={112} cadencia={3} retraso={i === 0 ? 8 : 0} ancho={770} />
 						</Sequence>
 					))}
 				</Vidrio>
@@ -342,7 +344,7 @@ const ESCENAS: {c: React.FC; d: number; solape?: number}[] = [
 	{c: Tamano, d: 50},
 	{c: Escala, d: 70},
 	{c: Estructura, d: 55},
-	{c: Palancas, d: DURACION_PALANCA * PALANCAS.length},
+	{c: Palancas, d: DURACION_PALANCAS},
 	{c: UnCambio, d: 40},
 	{c: VariosLocales, d: 105},
 	{c: Retorno, d: 80},
