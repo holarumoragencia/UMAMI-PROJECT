@@ -68,6 +68,7 @@ const Escala: React.FC = () => {
 					fontSize: 300,
 					letterSpacing: '-0.06em',
 					color: naranja,
+					WebkitTextStroke: `5px ${naranja}`,
 					lineHeight: 1,
 					marginTop: 6,
 					opacity: s,
@@ -121,7 +122,7 @@ const Palancas: React.FC = () => {
 				}}
 			>
 				<Pildora texto="Estructura del negocio" style={{marginBottom: -36, marginLeft: 48, position: 'relative', zIndex: 2}} />
-				<Vidrio style={{minHeight: 330, paddingTop: 80}}>
+				<Vidrio style={{minHeight: 370, paddingTop: 80}}>
 					{PALANCAS.map((p, i) => (
 						<Sequence
 							key={p.texto}
@@ -129,7 +130,7 @@ const Palancas: React.FC = () => {
 							durationInFrames={DURACION_PALANCA}
 							layout="none"
 						>
-							<Texto texto={p.texto} tamano={118} cadencia={3} retraso={i === 0 ? 8 : 0} ancho={760} />
+							<Texto texto={p.texto} tamano={140} cadencia={3} retraso={i === 0 ? 8 : 0} ancho={800} />
 						</Sequence>
 					))}
 				</Vidrio>
@@ -187,6 +188,7 @@ const VariosLocales: React.FC = () => {
 							lineHeight: 0.85,
 							letterSpacing: '-0.06em',
 							color: gris,
+							WebkitTextStroke: `5px ${gris}`,
 							transform: `scale(${0.8 + 0.2 * golpe})`,
 							transformOrigin: 'left bottom',
 						}}
@@ -225,20 +227,22 @@ const UnLocal: React.FC = () => (
 	</AbsoluteFill>
 );
 
-// 11 — Pregunta
-const Pregunta: React.FC = () => (
+// 11 — Aclaración: un solo local con ganas de crecer también entra
+const QuiereCrecer: React.FC = () => (
 	<Plano color={arena}>
-		<Texto texto="¿Tienes un solo local?" color={gris} tamano={185} />
+		<Texto texto="Si el tuyo quiere *crecer," color={gris} acento={oliva} tamano={200} />
 	</Plano>
 );
 
-// 12 — Filtro
-const Filtro: React.FC = () => (
-	<AbsoluteFill>
-		<Clip src="latte" duracion={80} oscurecer={0.45} />
-		<AbsoluteFill style={{justifyContent: 'center', padding: '0 70px'}}>
-			<Texto texto="Si tienes claro hacia dónde vas, *hablemos." tamano={160} sombra />
-		</AbsoluteFill>
+// 12 — Panel oliva arriba, latte abajo
+const Juntos: React.FC = () => (
+	<AbsoluteFill style={{backgroundColor: gris}}>
+		<Region top={760} alto={1160}>
+			<Clip src="latte" duracion={75} oscurecer={0.1} zoom={[1, 1.08]} />
+		</Region>
+		<Bloque color={oliva} desde="arriba" alto={820} radio={64}>
+			<Texto texto="también podemos trabajar *juntos." acento={arena} tamano={165} retraso={4} />
+		</Bloque>
 	</AbsoluteFill>
 );
 
@@ -247,7 +251,7 @@ const Crecer: React.FC = () => (
 	<AbsoluteFill>
 		<Clip src="parrilla" duracion={75} oscurecer={0.4} />
 		<AbsoluteFill style={{justifyContent: 'flex-end', padding: '0 70px 260px'}}>
-			<Texto texto="Negocios preparados para *crecer." tamano={185} sombra />
+			<Texto texto="Negocios preparados para *escalar." tamano={185} sombra />
 		</AbsoluteFill>
 	</AbsoluteFill>
 );
@@ -343,8 +347,8 @@ const ESCENAS: {c: React.FC; d: number; solape?: number}[] = [
 	{c: VariosLocales, d: 105},
 	{c: Retorno, d: 80},
 	{c: UnLocal, d: 85},
-	{c: Pregunta, d: 55},
-	{c: Filtro, d: 80},
+	{c: QuiereCrecer, d: 60},
+	{c: Juntos, d: 75},
 	{c: Crecer, d: 60},
 	{c: Marca, d: 80, solape: SOLAPE_MARCA},
 ];

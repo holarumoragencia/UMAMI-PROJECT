@@ -105,6 +105,8 @@ export const Texto: React.FC<{
 				color,
 				textAlign: alineacion,
 				maxWidth: ancho,
+				// Engrosa el trazo por encima del 800 de Manrope para que todo el texto tenga el mismo peso.
+				WebkitTextStroke: `${Math.max(2, tamano * 0.018)}px currentColor`,
 				textShadow: sombra ? '0 6px 40px rgba(0,0,0,0.45)' : undefined,
 			}}
 		>
