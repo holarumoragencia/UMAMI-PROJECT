@@ -30,7 +30,7 @@ export const COLORES = {
 
 export const FUENTE = "'Manrope', sans-serif";
 
-// Clip de stock a pantalla completa (o dentro de un contenedor) con un zoom lento.
+// Clip de stock que llena su contenedor, con un zoom lento.
 export const Clip: React.FC<{
 	src: string;
 	desde?: number;
@@ -58,6 +58,17 @@ export const Clip: React.FC<{
 	);
 };
 
+// Recorta un clip a una franja de la pantalla.
+export const Region: React.FC<{top: number; alto: number; children: React.ReactNode}> = ({
+	top,
+	alto,
+	children,
+}) => (
+	<div style={{position: 'absolute', top, left: 0, right: 0, height: alto, overflow: 'hidden'}}>
+		{children}
+	</div>
+);
+
 // Texto que entra palabra por palabra. Las palabras con *asterisco* van en color de acento.
 export const Texto: React.FC<{
 	texto: string;
@@ -67,18 +78,18 @@ export const Texto: React.FC<{
 	retraso?: number;
 	cadencia?: number;
 	alineacion?: 'left' | 'center';
-	peso?: number;
 	ancho?: number;
+	sombra?: boolean;
 }> = ({
 	texto,
 	color = COLORES.blanco,
 	acento = COLORES.naranja,
-	tamano = 120,
+	tamano = 150,
 	retraso = 0,
 	cadencia = 3,
 	alineacion = 'left',
-	peso = 800,
-	ancho = 920,
+	ancho = 940,
+	sombra = false,
 }) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
@@ -87,13 +98,14 @@ export const Texto: React.FC<{
 		<div
 			style={{
 				fontFamily: FUENTE,
-				fontWeight: peso,
+				fontWeight: 800,
 				fontSize: tamano,
-				lineHeight: 1.02,
-				letterSpacing: '-0.035em',
+				lineHeight: 0.96,
+				letterSpacing: '-0.05em',
 				color,
 				textAlign: alineacion,
 				maxWidth: ancho,
+				textShadow: sombra ? '0 6px 40px rgba(0,0,0,0.45)' : undefined,
 			}}
 		>
 			{palabras.map((p, i) => {
@@ -102,7 +114,7 @@ export const Texto: React.FC<{
 				const s = spring({
 					frame: frame - retraso - i * cadencia,
 					fps,
-					config: {damping: 18, stiffness: 180, mass: 0.6},
+					config: {damping: 16, stiffness: 200, mass: 0.6},
 				});
 				return (
 					<span
@@ -110,8 +122,9 @@ export const Texto: React.FC<{
 						style={{
 							display: 'inline-block',
 							whiteSpace: 'pre',
-							opacity: s,
-							transform: `translateY(${(1 - s) * 50}px)`,
+							opacity: Math.min(1, s * 1.4),
+							transform: `translateY(${(1 - s) * 70}px) scale(${0.92 + 0.08 * s})`,
+							transformOrigin: 'left bottom',
 							color: resaltada ? acento : color,
 						}}
 					>
@@ -124,7 +137,7 @@ export const Texto: React.FC<{
 	);
 };
 
-// Bloque de color que entra con un barrido vertical (estilo panel partido).
+// Bloque de color que entra con un barrido vertical (panel partido).
 export const Bloque: React.FC<{
 	color: string;
 	desde: 'arriba' | 'abajo';
@@ -133,10 +146,13 @@ export const Bloque: React.FC<{
 	children?: React.ReactNode;
 	padding?: string;
 	justificar?: 'flex-start' | 'center' | 'flex-end';
-}> = ({color, desde, alto, retraso = 0, children, padding = '0 80px', justificar = 'center'}) => {
+	radio?: number;
+}> = ({color, desde, alto, retraso = 0, children, padding = '0 70px', justificar = 'center', radio = 0}) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
 	const s = spring({frame: frame - retraso, fps, config: {damping: 22, stiffness: 160}});
+	const esquinas =
+		desde === 'arriba' ? `0 0 ${radio}px ${radio}px` : `${radio}px ${radio}px 0 0`;
 	return (
 		<div
 			style={{
@@ -146,6 +162,7 @@ export const Bloque: React.FC<{
 				[desde === 'arriba' ? 'top' : 'bottom']: 0,
 				height: alto * s,
 				backgroundColor: color,
+				borderRadius: esquinas,
 				overflow: 'hidden',
 				display: 'flex',
 				flexDirection: 'column',
@@ -159,19 +176,88 @@ export const Bloque: React.FC<{
 };
 
 // Fondo plano de color con el texto centrado verticalmente.
-export const Plano: React.FC<{color: string; children: React.ReactNode; centrado?: boolean}> = ({
-	color,
-	children,
-	centrado = false,
-}) => (
+export const Plano: React.FC<{color: string; children: React.ReactNode}> = ({color, children}) => (
 	<AbsoluteFill
 		style={{
 			backgroundColor: color,
 			justifyContent: 'center',
-			alignItems: centrado ? 'center' : 'flex-start',
-			padding: '0 80px',
+			alignItems: 'flex-start',
+			padding: '0 70px',
 		}}
 	>
 		{children}
 	</AbsoluteFill>
+);
+
+// Marco de línea fina con esquinas redondeadas que se dibuja (detalle de las placas de Umami).
+export const MarcoLinea: React.FC<{retraso?: number; duracion?: number; inset?: number; radio?: number}> = ({
+	retraso = 0,
+	duracion = 30,
+	inset = 44,
+	radio = 72,
+}) => {
+	const frame = useCurrentFrame();
+	const avance = interpolate(frame - retraso, [0, duracion], [0, 1], {
+		extrapolateLeft: 'clamp',
+		extrapolateRight: 'clamp',
+	});
+	const suave = 1 - Math.pow(1 - avance, 3);
+	return (
+		<svg width={1080} height={1920} style={{position: 'absolute', inset: 0}}>
+			<rect
+				x={inset}
+				y={inset}
+				width={1080 - inset * 2}
+				height={1920 - inset * 2}
+				rx={radio}
+				fill="none"
+				stroke="rgba(255,255,255,0.85)"
+				strokeWidth={3}
+				pathLength={1}
+				strokeDasharray={1}
+				strokeDashoffset={1 - suave}
+			/>
+		</svg>
+	);
+};
+
+// Tarjeta con efecto vidrio (blur + borde fino + esquinas tipo Apple).
+export const Vidrio: React.FC<{children: React.ReactNode; style?: React.CSSProperties}> = ({
+	children,
+	style,
+}) => (
+	<div
+		style={{
+			backgroundColor: 'rgba(42,42,42,0.28)',
+			backdropFilter: 'blur(28px) saturate(140%)',
+			WebkitBackdropFilter: 'blur(28px) saturate(140%)',
+			border: '2px solid rgba(255,255,255,0.32)',
+			borderRadius: 56,
+			padding: '54px 60px 62px',
+			boxShadow: '0 30px 80px rgba(0,0,0,0.25)',
+			...style,
+		}}
+	>
+		{children}
+	</div>
+);
+
+// Etiqueta tipo píldora blanca con texto naranja (como #TheUMAMIWay).
+export const Pildora: React.FC<{texto: string; style?: React.CSSProperties}> = ({texto, style}) => (
+	<div
+		style={{
+			display: 'inline-block',
+			backgroundColor: COLORES.blanco,
+			color: COLORES.naranja,
+			fontFamily: FUENTE,
+			fontWeight: 800,
+			fontSize: 46,
+			letterSpacing: '-0.02em',
+			padding: '16px 40px',
+			borderRadius: 999,
+			...style,
+		}}
+	>
+		{texto}
+	</div>
 );
